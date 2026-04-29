@@ -4,132 +4,475 @@
 
 - Twenty is the internal CRM, loan origination management, credit proposal, task, and reporting layer.
 - The client portal is borrower-facing; Twenty is the staff-facing application where brokers/processors/admins manage work.
-- ApplyOnline is the preferred future lodgement target, with AFG Flex as alternate/fallback.
-- AFG/BrokerEngine may remain transitional or operational integration systems where their APIs expose authoritative deal data.
-- Sensitive document binaries should remain in the authorised portal/document provider unless storage is approved.
+- Use `Contacts` as the staff-facing label for borrowers, co-borrowers, guarantors, referrers, professional contacts, broker contacts, and lender contacts. Treat Twenty's internal `People`/`Person` naming as a platform detail only where it cannot be changed.
+- ApplyOnline is the preferred future lodgement target, with AFG Flex as the alternate/fallback path where direct ApplyOnline integration is unavailable or not approved.
+- AFG and BrokerEngine remain relevant operational or transitional systems where their APIs expose authoritative deal, document, board, task, or status data.
+- Sensitive documents should remain in the authorised portal or document system unless an approved storage model is confirmed.
 - Every integrated object needs an ownership classification: `Twenty-owned`, `external-owned`, `bidirectional`, or `reference-only`.
+- Prefer structured fields and board stages over free text for compliance, reporting, and automation.
 
 ## Standard Objects
 
-### People
+### Contacts
 
-Use for borrowers, co-applicants, guarantors, referrers, professional contacts, brokers, lender contacts, solicitors, accountants, and real estate agents.
+Twenty standard object: People/Person, relabelled or presented to staff as Contacts.
 
-Key fields: role tags, preferred name, mobile, email, address, date of birth where approved, residency/citizenship status where approved, privacy consent, marketing consent, and external IDs.
+Use for all natural persons:
 
-Ownership: `bidirectional` where supported; otherwise `Twenty-owned` with external references.
+- Borrowers/applicants.
+- Co-applicants.
+- Guarantors.
+- Referrers.
+- Conveyancers/solicitors.
+- Accountants.
+- Real estate agents.
+- Broker contacts.
+- Lender/BDM contacts.
 
-### Companies
+Recommended fields:
 
-Use for employers, self-employed applicant businesses, trust/corporate borrowers, lenders, broker entities, referral partners, conveyancers, and accounting firms.
+- Contact role tags: applicant, co-applicant, guarantor, referrer, professional contact, broker contact, lender contact.
+- Preferred name.
+- Mobile, email, address.
+- Preferred communication method.
+- Date of birth where approved for storage.
+- Residency/citizenship status where approved for storage.
+- Privacy consent status.
+- Marketing consent status.
+- Portal user/account reference.
+- External IDs for AFG, BrokerEngine, ApplyOnline, AFG Flex, and specialist tools where applicable.
 
-Key fields: ABN/ACN, organisation type, industry, contact role, external IDs, broker panel/lender flag.
+Ownership: `bidirectional` for contact basics if APIs support it; otherwise `Twenty-owned` with external references.
 
-Ownership: `Twenty-owned` for relationship management; `reference-only` where lender lists come from external systems.
+### Organisations
 
-### Opportunities
+Twenty standard object: Companies, relabelled or presented as Organisations where useful.
 
-Use as the high-level mortgage opportunity/deal record. One opportunity can have one or more mortgage applications.
+Use for:
 
-Key fields: deal type, target settlement date, estimated loan amount, estimated property value, current stage, broker owner, processor owner, credit analyst owner, compliance status, external deal IDs.
+- Employers.
+- Self-employed applicant businesses.
+- Trust/corporate borrowers.
+- Lenders.
+- Broker group entities.
+- Referral partners.
+- Conveyancing firms.
+- Accounting firms.
+- Real estate agencies.
 
-Ownership: `Twenty-owned` for sales and process visibility; `bidirectional` for stage/status only if API support exists.
+Recommended fields:
 
-## Core Custom Objects
+- ABN/ACN.
+- Organisation type.
+- Industry.
+- Contact role.
+- External IDs.
+- Broker panel/lender flag.
+- BDM/contact relationship.
+
+Ownership: `Twenty-owned` for relationship management; `reference-only` where lender or product lists come from BrokerEngine, AFG, ApplyOnline, AFG Flex, or product research providers.
+
+### Deals
+
+Twenty standard object: Opportunities, presented to staff as Deals where possible.
+
+Use as the high-level commercial opportunity and sales/workflow container. One Deal can have one or more Mortgage Applications if the scenario splits, is restructured, or is resubmitted.
+
+Recommended fields:
+
+- Deal type: purchase, refinance, construction, investment, debt consolidation, equity release, pre-approval.
+- Lead source.
+- Referral source.
+- Target settlement date.
+- Estimated loan amount.
+- Estimated property value.
+- Current high-level stage.
+- Broker owner.
+- Loan processor owner.
+- Credit/admin reviewer owner.
+- Compliance status.
+- External AFG/BrokerEngine/ApplyOnline/AFG Flex deal ID.
+
+Ownership: `Twenty-owned` for sales/process visibility; `bidirectional` for stage/status only if API support exists.
+
+## Core Mortgage Objects
 
 ### Mortgage Application
 
-Represents the structured application package linked to an opportunity.
+Represents the structured loan application package linked to a Deal.
 
-Key fields: application type, lender selected, product selected, submission readiness status, external lodgement reference, current aggregator/lender status, submitted date, conditional approval date, formal approval date, settlement date, decline/withdraw reason.
+Fields:
 
-Relationships: Opportunity, applicants, broker, lender, loan requirements, securities/properties, documents, status events, credit proposal.
+- Application type: full assessment, pre-approval, variation, resubmission.
+- Lodgement target: not confirmed, ApplyOnline, AFG Flex, AFG, BrokerEngine, manual.
+- LIXI reference/version note.
+- Lender selected.
+- Product selected.
+- Submission readiness status.
+- External lodgement reference.
+- Current raw external status.
+- Current normalized stage.
+- Requested loan amount.
+- Estimated LVR.
+- Submitted date.
+- Conditional approval date.
+- Formal approval date.
+- Settlement date.
+- Decline/withdraw reason.
 
-Ownership: `Twenty-owned` before lodgement; ApplyOnline/AFG Flex/AFG/BrokerEngine may become authoritative for lodgement status after submission.
+Relationships:
 
-### Credit Proposal
+- Deal.
+- Primary Contact.
+- Co-applicant Contacts.
+- Broker owner.
+- Processor owner.
+- Lender.
+- Fact Find Session.
+- Loan Requirements.
+- Properties/Securities.
+- Document Metadata.
+- Credit Proposal.
+- Conditions.
+- Status Events.
+- Serviceability, Valuation, and LMI records.
 
-Represents the broker/credit-facing proposal and recommendation work that develops over time before lodgement or client presentation.
+Ownership: `Twenty-owned` before lodgement; lodgement and raw status may become `external-owned` after submission through ApplyOnline, AFG Flex, AFG, or BrokerEngine.
 
-Key fields: proposal status, client objectives summary, product recommendation summary, lender/product shortlist, recommendation rationale, policy exceptions, key risks, mitigants, compliance review status, approval owner, approved date, client-facing summary approved flag.
+### Fact Find Session
 
-Relationships: Opportunity, Mortgage Application, applicants, loan requirements, product references, serviceability assessments, documents, tasks.
+Represents a structured fact find linked to the Deal, Mortgage Application, Contacts, and Household. This is a first-class workflow object, not just a form response.
 
-Ownership: `Twenty-owned`. External product research and serviceability providers may supply references or summaries, but the working proposal remains in Twenty.
+Fields:
+
+- Fact find status.
+- Completion percentage.
+- Client submitted date/time.
+- Processor review status.
+- Broker review status.
+- Last client activity date/time.
+- Last staff activity date/time.
+- Missing information count.
+- Portal session/reference ID.
+- Version/revision number.
+
+Relationships:
+
+- Deal.
+- Mortgage Application.
+- Primary Contact.
+- Co-applicant Contacts.
+- Household.
+- Fact Find Sections.
+- Document Metadata.
+- Tasks.
+
+Ownership: `Twenty-owned`, with client-entered values arriving from the portal.
+
+### Fact Find Section
+
+Tracks completion and review of each fact-find section.
+
+Recommended section names:
+
+- Applicant details.
+- Co-applicant/guarantor details.
+- Household and dependants.
+- Goals, objectives, and requirements.
+- Employment.
+- Income.
+- Expenses.
+- Assets.
+- Liabilities.
+- Property/security.
+- Documents.
+- Consent and disclosures.
+
+Fields:
+
+- Section status: not started, in progress, submitted, needs clarification, under review, complete, waived/not applicable.
+- Required flag.
+- Completion percentage.
+- Assigned owner.
+- Missing information summary.
+- Staff review status.
+- Related document requests.
+
+Ownership: `Twenty-owned`.
 
 ### Household
 
 Groups applicants whose income, expenses, dependants, and liabilities are assessed together.
 
-Key fields: household name, living arrangement, number of dependants, expense profile status, external reference.
+Fields:
+
+- Household name.
+- Living arrangement.
+- Number of dependants.
+- Expense profile status.
+- External reference.
+
+Relationships:
+
+- Contacts.
+- Fact Find Session.
+- Expenses.
+- Assets.
+- Liabilities.
+- Mortgage Applications.
+
+Ownership: `Twenty-owned` unless AFG/BrokerEngine exposes a matching household model.
 
 ### Employment
 
-Captures employment and self-employment details for each applicant.
+Captures employment and self-employment details for each applicant Contact.
 
-Key fields: employment type, employer/company, role/title, start date, basis, probation flag, verification status, income evidence status.
+Fields:
+
+- Employment type.
+- Employer/Organisation.
+- Role/title.
+- Start date.
+- Basis: full-time, part-time, casual, contractor, self-employed.
+- Probation flag.
+- Verification status.
+- Income evidence status.
+
+Ownership: `Twenty-owned` for CRM readiness; sync only if external API supports structured employment.
 
 ### Income
 
-Key fields: income type, amount, frequency, gross/net indicator, evidence status, serviceability included flag.
+Fields:
+
+- Income type: base salary, overtime, bonus, commission, rental, business income, government benefit, other.
+- Amount.
+- Frequency.
+- Gross/net indicator.
+- Evidence status.
+- Serviceability included flag.
+
+Relationships:
+
+- Contact.
+- Employment.
+- Fact Find Session.
+- Mortgage Application.
+
+Ownership: `Twenty-owned`; external sync subject to API and privacy approval.
 
 ### Expense
 
-Key fields: expense category, amount, frequency, declared/verified indicator, household expense method.
+Fields:
+
+- Expense category.
+- Amount.
+- Frequency.
+- Declared/verified indicator.
+- Household expense method.
+
+Ownership: `Twenty-owned`; may be `reference-only` from fact-find/client portal.
 
 ### Asset
 
-Key fields: asset type, estimated value, ownership percentage, evidence status.
+Fields:
+
+- Asset type: cash, vehicle, superannuation, property, shares, other.
+- Estimated value.
+- Ownership percentage.
+- Evidence status.
+
+Ownership: `Twenty-owned`.
 
 ### Liability
 
-Key fields: liability type, limit, balance, repayment amount, frequency, lender, to-be-refinanced/closed flag.
+Fields:
+
+- Liability type: home loan, personal loan, credit card, HECS/HELP, car loan, buy-now-pay-later, other.
+- Limit.
+- Balance.
+- Repayment amount.
+- Frequency.
+- Lender.
+- To be refinanced/closed flag.
+
+Ownership: `Twenty-owned`; update from external source only with clear authority.
 
 ### Loan Requirement
 
-Key fields: purpose, requested amount, loan term, repayment type, interest type, fixed/variable preference, offset/redraw requirements, product preference, loan split group.
+Fields:
+
+- Purpose.
+- Requested amount.
+- Loan term.
+- Repayment type.
+- Interest type.
+- Fixed/variable preference.
+- Offset/redraw requirements.
+- Product preference.
+- Loan split group.
+
+Ownership: `Twenty-owned` before submission; `external-owned` after lodgement if external system is authoritative.
 
 ### Property / Security
 
-Key fields: address, property type, occupancy, purchase price, estimated value, valuation status, title search status, security position, LVR contribution.
+Fields:
+
+- Address.
+- Property type.
+- Occupancy: owner occupied, investment.
+- Purchase price.
+- Estimated value.
+- Valuation status.
+- Title search status.
+- Security position.
+- LVR contribution.
+
+Ownership: `Twenty-owned` for CRM; valuation/title details may be `external-owned` or `reference-only`.
+
+## Credit and Product Objects
+
+### Credit Proposal
+
+Represents the broker/credit-facing proposal and recommendation work that develops over time before lodgement or client presentation.
+
+Fields:
+
+- Proposal status: draft, in review, approved, presented, revised, archived.
+- Client objectives summary.
+- Product recommendation summary.
+- Lender/product shortlist.
+- Recommendation rationale.
+- Policy exceptions.
+- Key risks.
+- Mitigants.
+- Compliance review status.
+- Approval owner.
+- Approved date.
+- Client-facing summary approved flag.
+
+Relationships:
+
+- Deal.
+- Mortgage Application.
+- Contacts.
+- Loan Requirements.
+- Product References.
+- Serviceability Assessments.
+- Document Metadata.
+- Tasks.
+
+Ownership: `Twenty-owned`. External product research and serviceability providers may supply references or summaries, but the working credit proposal should remain in Twenty.
 
 ### Lender
 
-Represents lender panel/reference data.
+Represents a lender on the broker panel. This can be a custom object or a tagged Organisation, but a custom object is clearer if lender-specific fields, panel status, BDM contacts, and product references need to be managed.
 
-Key fields: lender name, panel status, aggregator/lodgement channel, broker code, BDM contact, credit contact, settlement contact, policy notes reference, external lender ID.
+Fields:
+
+- Lender name.
+- Panel status.
+- Aggregator/lodgement channel.
+- Broker code.
+- BDM contact.
+- Credit contact.
+- Settlement contact.
+- Policy notes reference.
+- External lender ID.
+
+Ownership: `reference-only` or `external-owned` if lender panel data is imported; `Twenty-owned` for internal notes and relationship management.
 
 ### Product Reference
 
-Represents high-level lending product options used for tracking and recommendations.
+Represents high-level lending product options used for tracking and recommendations. It is not intended to replace lender product systems unless a reliable product feed is available.
 
-Key fields: product name, lender, product type, rate type, repayment type, owner-occupied/investment availability, offset/redraw features, external product ID, active status.
+Fields:
 
-## Operational Custom Objects
+- Product name.
+- Lender.
+- Product type.
+- Rate type.
+- Repayment type.
+- Owner-occupied/investment availability.
+- Offset/redraw features.
+- External product ID.
+- Active/inactive status.
+
+Ownership: `reference-only` if sourced from AFG/BrokerEngine, ApplyOnline, AFG Flex, product research providers, or lender feeds; `Twenty-owned` for manually maintained shortlist/reference products.
+
+## Operational Objects
 
 ### Document Metadata
 
 Store metadata only unless approved otherwise.
 
-Key fields: document type, required/optional, request status, received status, verified status, expiry date, external document URL/reference, storage location, owner.
+Fields:
+
+- Document type.
+- Required/optional.
+- Request status.
+- Received status.
+- Verified status.
+- Rejected/rework status.
+- Expiry date.
+- Waived flag and waiver reason.
+- External document URL/reference.
+- Storage location.
+- Owner.
+
+Ownership: `reference-only` if stored in BrokerEngine, FinanceVault, AFG, lender portal, or another approved document system.
 
 ### Condition
 
-Tracks internal packaging conditions and lender/credit approval conditions.
+Tracks lender/credit approval conditions and internal packaging conditions.
 
-Key fields: condition type, description, source, status, due date, satisfied date, evidence reference.
+Fields:
+
+- Condition type.
+- Description.
+- Source: lender, aggregator, BrokerEngine, AFG, ApplyOnline, AFG Flex, internal.
+- Status.
+- Due date.
+- Satisfied date.
+- Evidence reference.
+- Assigned owner.
+
+Ownership: `external-owned` when imported from external status updates; `Twenty-owned` for internal packaging conditions.
 
 ### Status Event
 
 Append-only timeline of external and internal status events.
 
-Key fields: event source, external event ID, event type, raw external status label, normalized status, event timestamp, processed timestamp, related task/condition.
+Fields:
+
+- Event source.
+- External event ID.
+- Event type.
+- Raw external status label.
+- Normalized status.
+- Event timestamp.
+- Processed timestamp.
+- Related task/condition.
+
+Ownership: `external-owned` for imported events; `Twenty-owned` for internal events.
 
 ### Integration Error Log
 
 Operational record for sync failures and unknown external events.
 
-Key fields: source system, object type, external ID, error category, safe error summary, first seen timestamp, last retry timestamp, retry count, resolution status, assigned owner.
+Fields:
+
+- Source system.
+- Object type.
+- External ID.
+- Error category.
+- Safe error summary.
+- First seen timestamp.
+- Last retry timestamp.
+- Retry count.
+- Resolution status.
+- Assigned owner.
+
+Ownership: `Twenty-owned`.
 
 ## Specialist Tool Objects
 
@@ -169,27 +512,35 @@ Tracks provider reference, ordered/received status, title reference, report link
 
 Tracks settlement status, target settlement date, confirmed date/time, settlement agent, loan documents status, funds-to-complete status, and post-settlement review date.
 
-## Core Views
+## Board and View Model
 
-Recommended operational views:
+The workspace should have multiple operational boards, not one monolithic pipeline.
 
-- New leads.
-- Fact find incomplete.
-- Documents outstanding.
-- ID verification incomplete.
-- Open banking incomplete.
-- Ready for credit review.
-- Credit proposals in draft.
-- Credit proposals awaiting review.
-- Ready for lodgement.
-- Lodged and awaiting response.
-- Conditional approval with outstanding conditions.
-- Formal approval awaiting docs.
-- Settlement this week.
-- Settled this month.
-- Post-settlement review due.
-- Integration errors requiring action.
-- Deals at risk.
+Recommended boards:
+
+- Lead Intake Board.
+- Fact Find Board.
+- Document Collection Board.
+- BID and Compliance Board.
+- Credit Proposal Board.
+- Lodgement Preparation Board.
+- Lodged Application Status Board.
+- Conditions Board.
+- Valuation and LMI Board.
+- Settlement Board.
+- Post-Settlement Review Board.
+- Integration Exceptions Board.
+
+Each board should have:
+
+- Board owner or default responsible role.
+- Stage field.
+- Next action field.
+- Due date.
+- Stale item indicator.
+- Automation triggers for next tasks.
+
+Detailed board setup is in `pipeline-and-board-configuration.md`.
 
 ## Permissions
 
@@ -197,9 +548,9 @@ Recommended role groups:
 
 - Principal/admin: full access.
 - Broker: own client/deal access and assigned team deals.
-- Loan processor: application, document metadata, tasks, status events, conditions.
-- Credit/admin reviewer: application, credit proposal, serviceability, conditions, compliance evidence.
-- Support/client success: limited post-settlement and review access.
+- Loan processor: Fact Finds, Document Metadata, Applications, Tasks, Status Events, Conditions, and Settlements.
+- Credit/admin reviewer: Applications, Credit Proposals, Serviceability, Conditions, and compliance evidence.
+- Support/client success: limited Contacts, Reviews, Documents, and Tasks access.
 - Integration service account: scoped machine access only.
 
 Restrict sensitive fields such as identity details, bank/open banking data, income, liabilities, documents, credit outcomes, and internal risk notes to users with a business need.
